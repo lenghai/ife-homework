@@ -146,7 +146,6 @@ each(arr, output);  // 0:java, 1:c, 2:php, 3:html
 
 
 
-
 // 获取一个对象里面第一层元素的数量，返回一个整数
 function getObjectLength(obj) {
     var count = 0;
@@ -168,3 +167,21 @@ var obj = {
     }
 };
 console.log(getObjectLength(obj)); // 3
+
+
+
+
+// 判断是否为邮箱地址
+function isEmail(emailStr) {
+    var pattern = /^[a-z0-9](\w|\.|-)*@([a-z0-9]+-?[a-z0-9]+\.){1,3}[a-z]{2,4}$/i;
+    return pattern.test(emailStr);
+}
+
+
+
+
+// 判断是否为手机号
+function isMobilePhone(phone) {
+    var pattern = /(^(13\d|14[57]|15[^4,\D]|17[678]|18\d)\d{8}|170[059]\d{7})$/;
+     return pattern.test(phone);
+}
