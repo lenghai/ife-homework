@@ -185,3 +185,38 @@ function isMobilePhone(phone) {
     var pattern = /(^(13\d|14[57]|15[^4,\D]|17[678]|18\d)\d{8}|170[059]\d{7})$/;
      return pattern.test(phone);
 }
+
+
+
+
+
+// 为element增加一个样式名为newClassName的新样式
+function hasClass(element, oClass) {
+    var strclass = element.className;
+    return strclass.indexOf(oClass) === -1 ? false : true;
+}
+
+function addClass(element, newClassName) {
+   if(!hasClass(element, newClassName)) {
+    element.className + = " " + newClassName;
+   }
+}
+
+// 移除element中的样式oldClassName
+function removeClass(element, oldClassName) {
+    if(hasClass(element, oldClassName)) {
+        var newCla = element.className + " ";
+        trim(newCla.replace(oldClassName + " ", ""));
+    }
+}
+
+// 判断siblingNode和element是否为同一个父元素下的同一级的元素，返回bool值
+function isSiblingNode(element, siblingNode) {
+    // your implement
+}
+
+// 获取element相对于浏览器窗口的位置，返回一个对象{x, y}
+function getPosition(element) {
+    // your implement
+}
+// your implement
