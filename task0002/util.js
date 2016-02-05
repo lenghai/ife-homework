@@ -206,17 +206,192 @@ function addClass(element, newClassName) {
 function removeClass(element, oldClassName) {
     if(hasClass(element, oldClassName)) {
         var newCla = element.className + " ";
-        trim(newCla.replace(oldClassName + " ", ""));
+       element.className = trim(newCla.replace(oldClassName + " ", ""));
     }
 }
 
 // 判断siblingNode和element是否为同一个父元素下的同一级的元素，返回bool值
 function isSiblingNode(element, siblingNode) {
-    // your implement
+   return element.parentNode === siblingNode.parentNode;
 }
 
 // 获取element相对于浏览器窗口的位置，返回一个对象{x, y}
 function getPosition(element) {
-    // your implement
+    var obj = {};
+    var top = element.offsetTop;
+    var left = element.offsetLeft;
+    var current = element;
+    while (element.offsetParent !== null) {
+         left += current.offsetLeft;
+        top += current.offsetTop;
+        current = current.offsetParent;
+    }
+    var scrollLeft = document.body.scrollLeft + document.documentElement.scrollLeft;
+    var scrollTop = document.body.scrollTop + document.documentElement.scrollTop;
+    left -= scrollLeft;
+    top -= scrollTop;
+    obj.x = left;
+    obj.y = top;
+    return obj;
 }
-// your implement
+
+
+
+
+
+
+// 实现一个简单的Query
+
+   function $(selector) {
+    var result,theEle,ele;
+    var arr = selector.replace(/\s+/g," ").split(" ");
+    
+    function getEle(str,ele) {
+        switch (str.charAt(0)) {
+
+        case "#" :
+            result = ele.getElementById(str.substr(1));
+            break;
+        case "." :
+            result = ele.getElementsByClassName(str.substr(1))[0]; 
+            break;
+        case "[" : 
+            var temp = ele.getElementsByTagName("*");
+            var tLen = temp.length;
+            if(str.indexOf("=") !== -1) {
+                var key = str.substring(1,str.indexOf("="));
+                var value = str.substring(str.indexOf("=") + 1,str.length-1);
+                for (var j = 0; j < tLen; j++) {
+                    if (temp[j][key] === value) {
+                        result = temp[j];
+                        break
+                    }
+                }
+            }
+            else {
+                var key = str.substring(1,str.length -1);
+                for (var j = 0 ;j < tLen; j++) {
+                    if (temp[j][key]) {
+                        result = temp[j];
+                        break;
+                    }
+                }
+            }
+        default :  
+            result = ele.getElementsByTagName(str)[0];
+            break;
+    }
+    return result;
+    }
+    
+    if (arr.length === 1) {
+        theEle = getEle(arr[0],"document");
+    }
+    else {
+        var ele = getEle(arr[0],"document");
+        theEle = getEle(arr[1],ele);
+    }
+    return theEle;
+}
+
+// 可以通过id获取DOM对象，通过#标示，例如
+$("#adom"); // 返回id为adom的DOM对象
+
+// 可以通过tagName获取DOM对象，例如
+$("a"); // 返回第一个<a>对象
+
+// 可以通过样式名称获取DOM对象，例如
+$(".classa"); // 返回第一个样式定义包含classa的对象
+
+// 可以通过attribute匹配获取DOM对象，例如
+$("[data-log]"); // 返回第一个包含属性data-log的对象
+
+$("[data-time=2015]"); // 返回第一个包含属性data-time且值为2015的对象
+
+// 可以通过简单的组合提高查询便利性，例如
+$("#adom .classa"); // 返回id为adom的DOM所包含的所有子节点中，第一个样式定义包含classa的对象
+
+
+
+
+
+
+
+// 给一个element绑定一个针对event事件的响应，响应函数为listener
+function addEvent(element, event, listener) {
+    if (element.addEventListener) {
+        element.addEventListener(event,listener,false);//DOM2
+    } else if (element.attachEvent) {
+        element.attachEvent("on" + event,listener);//IE
+    } else {
+        element["on" + event] = listener;//DOM0
+    }
+}
+
+// 例如：
+function clicklistener(event) {
+    ...
+}
+addEvent($("#doma"), "click", a);
+
+// 移除element对象对于event事件发生时执行listener的响应
+function removeEvent(element, event, listener) {
+    if (element.removeEventListener) {
+        element.removeEventListener(event,listener,false);
+    } else if (element.detachEvent) {
+        element.detachEvent("on" + event,listener);
+    } else {
+        element["on" + event] = null;
+    }
+}
+
+
+
+
+// 实现对click事件的绑定
+function addClickEvent(element, listener) {
+    addEvent(element,"click",listener);
+}
+
+// 实现对于按Enter键时的事件绑定
+function addEnterEvent(element, listener) {
+    addEvent(element,"keydown",function(event) {
+        var event = event|| window.event;
+        var keyCode = event.which || event.keyCode;
+        if (event.keyCode === 13) {
+            listener.call(element,event)
+        }
+    });
+}
+
+
+
+
+
+//接下来我们把上面几个函数和$做一下结合，把他们变成$对象的一些方法
+
+//addEvent(element, event, listener) -> $.on(element, event, listener);
+//removeEvent(element, event, listener) -> $.un(element, event, listener);
+//addClickEvent(element, listener) -> $.click(element, listener);
+//addEnterEvent(element, listener) -> $.enter(element, listener);
+
+$.on = addEvent;
+$.un = removeEvent;
+$.click = addClickEvent;
+$.enter = addEnterEvent;
+
+
+
+
+// 先简单一些
+function delegateEvent(element, tag, eventName, listener) {
+    addEvent(element,eventName,function() {
+
+    });
+}
+
+$.delegate = delegateEvent;
+
+// 使用示例
+// 还是上面那段HTML，实现对list这个ul里面所有li的click事件进行响应
+$.delegate($("#list"), "li", "click", clickHandle);
