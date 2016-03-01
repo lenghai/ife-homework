@@ -385,8 +385,12 @@ $.enter = addEnterEvent;
 
 // 先简单一些
 function delegateEvent(element, tag, eventName, listener) {
-    addEvent(element,eventName,function() {
-
+    addEvent(element,eventName,function(e) {
+        var event = e || window.event;
+        var target = event.target || event.srcElement;
+        if (target&&target.tagName === tag.toUpperCase()) {
+            listener.call(target,event);
+        }
     });
 }
 
@@ -395,3 +399,199 @@ $.delegate = delegateEvent;
 // 使用示例
 // 还是上面那段HTML，实现对list这个ul里面所有li的click事件进行响应
 $.delegate($("#list"), "li", "click", clickHandle);
+
+
+
+
+
+$.on(selector, event, listener) {
+    var element = $(selector);
+    if (element.addEventListener) {
+        element.addEventListener(event,listener,false);//DOM2
+    } else if (element.attachEvent) {
+        element.attachEvent("on" + event,listener);//IE
+    } else {
+        element["on" + event] = listener;//DOM0
+    }
+}
+
+$.click(selector, listener) {
+    var element = $(selector);
+    addEvent(element,"click",listener);
+}
+
+$.un(selector, event, listener) {
+    var element = $(selector);
+    if (element.removeEventListener) {
+        element.removeEventListener(event,listener,false);
+    } else if (element.detachEvent) {
+        element.detachEvent("on" + event,listener);
+    } else {
+        element["on" + event] = null;
+    }
+}
+
+$.delegate(selector, tag, event, listener) {
+    var element = $(selector);
+    addEvent(element,event,function(e) {
+        var event = e || window.event;
+        var target = event.target || event.srcElement;
+        if (target&&target.tagName === tag.toUpperCase()) {
+            listener.call(target,event);
+        }
+    });
+}
+
+// 使用示例：
+$.click("[data-log]", logListener);
+$.delegate('#list', "li", "click", liClicker);
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+
+
+
+
+// task 5.1
+// 判断是否为IE浏览器，返回-1或者版本号
+function isIE(ver) {
+    var b = document.createElement('b');
+    b.innerHTML = '<!--[if IE' + ver + ']><i></i><![endif]-->';
+    var result = b.getElementsByTagName('i').length === 1;
+    var re;
+    if(result) {
+        if(isIE(6)){
+            // re = 'IE 6';
+        }
+        if(isIE(7)){
+            // re = 'IE 7';
+        }
+        if(isIE(8)){
+            // re = 'IE 8';
+        }
+        if(isIE(9)){
+            // re = 'IE 9';
+        }
+    } else {
+        re = -1;
+    }
+    return re;
+}
+
+// 设置cookie
+function setCookie(cookieName, cookieValue, expiredays) {
+    var oDate = new Date();
+    oDate.setDate(oDate.getDate()+expiredays);
+    document.cookie = cookieName + "=" + cookieValue +";expires="+oDate;
+}
+
+// 获取cookie值
+function getCookie(cookieName) {
+    var arr = document.cookie.split('; ');
+    var result;
+    for(var i=0,len=arr.length;i<len;i++) {
+        var arr2 = arr[i].split('=');
+        if(arr2[0] === cookieName) {
+            result = arr2[1];
+        }
+    } 
+    if(result === undefined) {
+        result = '';
+    }
+    return result;
+}
+
+
+
+
+
+
+
+
+
+// task 6.1,自己封装一个Ajax方法
+function ajax(url, options) {
+    //创建对象
+    var oajax = null;
+    if(window.XMLHttpRequest) {
+        oajax = new XMLHttpRequest();
+    }
+    else {
+        oajax = new ActiveXObject("Microsoft.XMLHTTP");
+    }
+    //处理data
+    if(options.data) {
+        var da_arr = [];
+        for(var key in options.data) {
+            da_arr.push(key + "=" + encodeURI(options.data[key]));
+        }
+        var data = da_arr.join("&");
+    }
+
+    //处理type
+    if(!options.type) {
+        options.type = "GET";
+    }
+    options.type = options.type.toUpperCase();
+
+    //发送请求
+    if (options.type === "GET") {
+        var myURL = "";
+        if (options.data) {
+            myURL = url + "?" + data;
+        }
+        else {
+            myURL = url;
+        }
+        oajax.open("GET",myURL,true);
+        oajax.send();
+    
+}
+else if (options.type === "POST") {
+    oajax.open("POST",url,true);
+    oajax.setRequestHeader("Content-type","application/x-www-form-urlencoded");
+    oajax.send(data);
+}
+
+
+    
+    oajax.onreadystatechange=function () {
+        if(oajax.readyState==4) {
+            if(oajax.status==200) {
+                if(options.onsuccess) {
+                options.onsuccess(oajax.responseText, oajax.responseXML);
+             }
+            }
+            else {
+                if(options.onfail) {
+                    options.onfail();
+                }
+            }
+        }
+    }
+
+
+}
+
+// 使用示例：
+ajax(
+    'http://localhost:8080/server/ajaxtest', 
+    {
+        data: {
+            name: 'simon',
+            password: '123456'
+        },
+        onsuccess: function (responseText, xhr) {
+            console.log(responseText);
+        }
+    }
+);
+
+//options是一个对象，里面可以包括的参数为：
+
+//type: post或者get，可以有一个默认值
+//data: 发送的数据，为一个键值对象或者为一个用&连接的赋值字符串
+//onsuccess: 成功时的调用函数
+//onfail: 失败时的调用函数
